@@ -1,0 +1,31 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
+# Hello World {#intro}
+
+```{r load_data}
+## Load in the data
+load("college.Rdata")
+```
+
+*Summarizing Data*
+
+```{r summarize}
+## What's the average median debt?
+sc%>%summarize(mean_debt=mean(debt_mdn,na.rm=TRUE))
+```
+
+*Stretch Items*
+
+```{r combining commands}
+## What's the average earnings for very selective schools?
+sc%>%filter(adm_rate<.1)%>%summarize(mean_debt=mean(md_earn_ne_pg,na.rm=TRUE))
+
+## And for not very selective schools?
+sc%>%filter(adm_rate>.3)%>%summarize(mean_debt=mean(md_earn_ne_pg,na.rm=TRUE))
+```
+
+
+
