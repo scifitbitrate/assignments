@@ -3,7 +3,8 @@ output:
   word_document: default
   html_document: default
 ---
-# Hello World {#intro}
+# Hello, World! {#intro}
+print("Hello, World!", quote = FALSE)
 
 ```{r load_data}
 ## Load in the data
@@ -12,20 +13,74 @@ load("college.Rdata")
 
 *Summarizing Data*
 
-```{r summarize}
+```{r summarize debt}
 ## What's the average median debt?
 sc%>%summarize(mean_debt=mean(debt_mdn,na.rm=TRUE))
 ```
 
 *Stretch Items*
+## 1. Calculate the average earnings for individuals at the most selective colleges,then compare that with individuals at the least selective colleges in the dataset.
 
-```{r combining commands}
-## What's the average earnings for very selective schools?
-sc%>%filter(adm_rate<.1)%>%summarize(mean_debt=mean(md_earn_ne_pg,na.rm=TRUE))
+```{r combining earnings and admission rates}
+## What's the average earnings for individuals very selective schools?
+sc%>%filter(adm_rate<.1)%>%summarize(mean_earn=mean(md_earn_wne_p6,na.rm=TRUE))
 
 ## And for not very selective schools?
-sc%>%filter(adm_rate>.3)%>%summarize(mean_debt=mean(md_earn_ne_pg,na.rm=TRUE))
+sc%>%filter(adm_rate>.3)%>%summarize(mean_earn=mean(md_earn_wne_p6,na.rm=TRUE))
 ```
 
+## 2. Find a way to determine whether colleges with very high SAT scores tend to be larger or smaller than colleges with low SAT scores.
+
+According to collegedata.com, colleges considered "small" have fewer than 5,000 students. These are typically private colleges like Hobart, Colgate, Grinnell, and Reed. Some small public colleges are SUNY Geneseo and Delaware State University. Large usually means more than 15,000 students. University of Southern California, New York University, and University of Pennsylvania qualify as large on the private side; UCLA, Michigan State, and University of Texas at Austin on the public side. 
+
+```{r combining SAT averages and number of degree/certificate-seeking undergraduates enrolled in the fall}
+## What's the mean average SAT score for individuals at small schools?
+sc%>%filter(ugds<5000)%>%summarize(mean_sat=mean(sat_avg,na.rm=TRUE))
+
+## What's the mean average SAT score for individuals at large schools?
+sc%>%filter(ugds>15000)%>%summarize(mean_sat=mean(sat_avg,na.rm=TRUE))
+```
+
+According to prepscholar.com a very high SAT score would be 1500 or higher and a low SAT score would be 950 and below. Although these are subjective descriptions, the data was normalized by percentile rank. 1500 is 99th percentiles and 950 is 31st percentile.
+
+```{r combining SAT averages and number of degree/certificate-seeking undergraduates enrolled in the fall v.2}
+## What's the mean number of undergraduates for schools with very high average SAT scores?
+sc%>%filter(sat_avg>1500)%>%summarize(mean_udgs=mean(ugds,na.rm=TRUE))
+
+## What's the mean number of undergraduates for schools with low average SAT scores?
+sc%>%filter(sat_avg<950)%>%summarize(mean_udgs=mean(ugds,na.rm=TRUE))
+```
+The average SAT scores at small schools compared similar to the average SAT scores at large schools. The average number of undergraduates at schools with very high SAT scores was very small 
+
+## 3. Plot the relationship between cost and debt. What do you see? Does this surprise you?
+
+```{r plotting cost versus debt}
+## Is there correlation between cost and debt?
+plot(sc$costt4_a, sc$debt_mdn,main="Scatterplot of Cost and Debt", xlab="Cost", ylab="Debt", pch=19)
+
+#run a SLR with Cost as DV and Debt as IV.
+sc.reg <- lm(costt4_a ~ debt_mdn, data=sc)
+
+#Parameter estimates
+sc.reg
+
+#More information for hypothesis tests
+summary(sc.reg)
+
+#Plotting regression line on scatterplot
+abline(sc.reg)
+```
+
+I was surprised. There was some correlation. I expected a higher correlation than I found.
+
+## 4. Now, provide separate plots for cost and debt by control of the institution.
+Note that 1 is for public, 2 is private non-profit, and 3 is private for profit.
 
 
+```{r separate plots for cost and debt by control of the institution}
+## Plotting cost by control
+plot(sc$control, sc$costt4_a,main="Scatterplot of Cost and Control", xlab="Control", ylab="Cost", pch=19)
+
+## WPlotting debt by control
+plot(sc$control, sc$debt_mdn,main="Scatterplot of Debt and Control", xlab="Control", ylab="Debt", pch=19)
+```
