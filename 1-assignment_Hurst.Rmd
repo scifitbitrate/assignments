@@ -3,12 +3,13 @@ output:
   word_document: default
   html_document: default
 ---
-# Hello, World! {#intro}
+# 1. Hello, World! {#intro}
 print("Hello, World!", quote = FALSE)
 
 ```{r load_data}
 ## Load in the data
 load("college.Rdata")
+library(tidyverse)
 ```
 
 *Summarizing Data*
@@ -18,6 +19,13 @@ load("college.Rdata")
 sc%>%summarize(mean_debt=mean(debt_mdn,na.rm=TRUE))
 ```
 
+## 2. Output that summaraizes average median debt.
+
+# A tibble: 1 x 1
+  mean_debt
+      <dbl>
+1    11277.
+  
 *Stretch Items*
 ## 1. Calculate the average earnings for individuals at the most selective colleges,then compare that with individuals at the least selective colleges in the dataset.
 
@@ -50,7 +58,7 @@ sc%>%filter(sat_avg>1500)%>%summarize(mean_udgs=mean(ugds,na.rm=TRUE))
 ## What's the mean number of undergraduates for schools with low average SAT scores?
 sc%>%filter(sat_avg<950)%>%summarize(mean_udgs=mean(ugds,na.rm=TRUE))
 ```
-The average SAT scores at small schools compared similar to the average SAT scores at large schools. The average number of undergraduates at schools with very high SAT scores was very small 
+The average SAT scores at small schools compared similar to the average SAT scores at large schools. The average number of undergraduates at schools with very high SAT scores was very small and schools with low SAT scores had a higher number of undergraduates the average still ranges in the small school (<5000) categorically. 
 
 ## 3. Plot the relationship between cost and debt. What do you see? Does this surprise you?
 
@@ -77,10 +85,10 @@ I was surprised. There was some correlation. I expected a higher correlation tha
 Note that 1 is for public, 2 is private non-profit, and 3 is private for profit.
 
 
-```{r separate plots for cost and debt by control of the institution}
+```{r plots for cost and debt by control of the institution}
 ## Plotting cost by control
 plot(sc$control, sc$costt4_a,main="Scatterplot of Cost and Control", xlab="Control", ylab="Cost", pch=19)
 
-## WPlotting debt by control
+## Plotting debt by control
 plot(sc$control, sc$debt_mdn,main="Scatterplot of Debt and Control", xlab="Control", ylab="Debt", pch=19)
 ```
