@@ -1,1 +1,52 @@
+output: rmarkdown::github_document
+
+# 1. Calculate the mean of the outcome
+
+Load libraries
+
+```{r  include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(plotly)
+library(Metrics)
+```
+
+## Load Dataset
+United States counties data put together by the Census Bureau that summarizes the characteristics of the 3,088 counties in the United States. 
+
+```{r data}
+load("pd.Rdata")
+```
+
+## Choosing a predictive characteristic
+
+The predictor in the example was per capita income and would be my first choice to predict home ownership. For this exercise I have chosen median household income.
+
+```{r mean}
+##Mean of median household income 2008-2012
+pd%>%summarize(mean_hhinc=mean(median_hh_inc,na.rm=TRUE))
+```
+
+# 2. Create a new variable that consists of the mean of median household income
+
+
+```{r create new variable in data set}
+##Unconditional Average as a Predictor
+pd<-pd%>%mutate(mean_hhinc=mean(median_hh_inc,na.rm=TRUE))
+```
+
+# 3. Calculate a summary measure of the errors for each observation
+
+```{r error}
+##Variable for error
+pd<-pd%>%mutate(e2=median_hh_inc-mean_hhinc)
+
+## RMSE
+rmse_uncond_mean<-rmse(pd$median_hh_inc,pd$mean_hhinc)
+
+rmse_uncond_mean
+
+```
+
+# 4. 
 
