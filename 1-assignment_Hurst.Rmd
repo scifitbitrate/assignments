@@ -8,7 +8,7 @@ print("Hello, World!", quote = FALSE)
 
 ```{r load_data}
 ## Load in the data
-load("college.Rdata")
+load("~/Dropbox/Vandy/Classes/8200/R Code/college.Rdata")
 library(tidyverse)
 ```
 
@@ -75,8 +75,6 @@ sc.reg
 #More information for hypothesis tests
 summary(sc.reg)
 
-#Plotting regression line on scatterplot
-abline(sc.reg)
 ```
 
 I was surprised. There was some correlation. I expected a higher correlation than I found.
