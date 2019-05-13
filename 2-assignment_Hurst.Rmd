@@ -97,9 +97,10 @@ pd<-pd%>%group_by(poverty_level)%>% ## Group by predictor
 ```
 
 # 5. Use these conditional means as a prediction: for every county, use the conditional mean to provide a ‘’best guess” as to that county’s level of the outcome.
+
 ## New Variable Home Ownership Rate
 ```{r}
-## Create a variable for quartiles of college education
+## Create a variable for quartiles of home ownership
 pd<-pd%>%mutate(homeown_rate_level=ntile(homeown_rate,4))
 ```
 
@@ -108,7 +109,6 @@ pd%>%group_by(homeown_rate_level)%>% ## Group by predictor
   ##Calculate mean at each level of predictor
   summarise(pred_income_homeown_rate=mean(median_hh_inc))
 ```
-
 
 ```{r}
 pd<-pd%>%group_by(poverty_level,homeown_rate_level)%>% ## Group by predictor
