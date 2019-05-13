@@ -28,11 +28,38 @@ pd%>%summarize(mean_hhinc=mean(median_hh_inc,na.rm=TRUE))
 ```
 
 # 2. Create a new variable that consists of the mean of median household income
-
+```{r new variable}
+## Create a rank variable for income 
+pd<-pd%>%mutate(hhinc_rank=rank(median_hh_inc))
+```
 
 ```{r create new variable in data set}
 ##Unconditional Average as a Predictor
 pd<-pd%>%mutate(mean_hhinc=mean(median_hh_inc,na.rm=TRUE))
+```
+
+We can plot the average with the actual.
+
+```{r}
+##Plotting
+gg<-ggplot(data=pd,aes(y=median_hh_inc,x=hhinc_rank,color="Actual"))
+gg<-gg+geom_point(alpha=.5,size=.5)
+gg<-gg+geom_point(aes(y=mean_hhinc,x=hhinc_rank,
+                  color="Predicted: Unconditional Mean"),
+                  size=.5)
+gg<-gg+xlab("Rank of Median Household Income")+ylab("Median Household Income")
+gg<-gg+scale_color_manual(name="Type",
+                          values=c("Actual"="black",
+                          "Predicted: Unconditional Mean"="blue")
+                          )
+gg<-gg+theme(legend.position="bottom")
+
+gg
+
+##Save for later
+
+gg3<-gg
+
 ```
 
 # 3. Calculate a summary measure of the errors for each observation
@@ -48,5 +75,55 @@ rmse_uncond_mean
 
 ```
 
-# 4. 
+# 4. Calculate the mean of the outcome at levels of a predictor variable.
 
+Although I am curious to compare ethnicity and median household income, the scope of commands is beyond my knowledge of R. For this excercise I am will be using persons below poverty.
+
+```{r condtl_mean_single}
+##Condtional Average across a single variable
+
+## Create a variable for quartiles of college education
+pd<-pd%>%mutate(poverty_level=ntile(persons_below_poverty,4))
+
+table(pd$poverty_level)
+
+pd<-pd%>%group_by(poverty_level)%>% ## Group by predictor
+  ##Calculate mean at each level of predictor
+  mutate(pred_income_poverty=mean(median_hh_inc))%>% 
+  ## Ungroup
+  ungroup()%>% 
+  #Rank by prediction, with ties sorted randomly
+  mutate(pred_income_poverty_rank=rank(pred_income_poverty,ties.method="random"))
+```
+
+# 5. Use these conditional means as a prediction: for every county, use the conditional mean to provide a ‘’best guess” as to that county’s level of the outcome.
+## New Variable Home Ownership Rate
+```{r}
+## Create a variable for quartiles of college education
+pd<-pd%>%mutate(homeown_rate_level=ntile(homeown_rate,4))
+```
+
+```{r}
+pd%>%group_by(homeown_rate_level)%>% ## Group by predictor
+  ##Calculate mean at each level of predictor
+  summarise(pred_income_homeown_rate=mean(median_hh_inc))
+```
+
+
+```{r}
+pd<-pd%>%group_by(poverty_level,homeown_rate_level)%>% ## Group by predictor
+  ##Calculate mean at each level of predictor
+  mutate(pred_income_poverty_and_homeown=mean(median_hh_inc))%>% 
+  ## Ungroup
+  ungroup()%>% 
+  #Rank by prediction, with ties sorted randomly
+  mutate(pred_income_poverty_and_homeown_rank=rank(pred_income_poverty_and_homeown,
+                                                ties.method="random"))
+```
+
+# 6. Calculate a summary measure of the error in your predictions.
+
+```{r}
+rmse_cond_mean_two<-rmse(pd$median_hh_inc,pd$pred_income_povery_and_homeown)
+rmse_cond_mean_two
+```
