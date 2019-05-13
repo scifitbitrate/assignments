@@ -124,6 +124,6 @@ pd<-pd%>%group_by(poverty_level,homeown_rate_level)%>% ## Group by predictor
 # 6. Calculate a summary measure of the error in your predictions.
 
 ```{r}
-rmse_cond_mean_two<-rmse(pd$median_hh_inc,pd$pred_income_povery_and_homeown)
+rmse_cond_mean_two<-rmse(pd$median_hh_inc,pd$pred_income_poverty_and_homeown)
 rmse_cond_mean_two
 ```
