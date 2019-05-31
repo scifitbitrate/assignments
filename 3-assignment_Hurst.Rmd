@@ -1,0 +1,20 @@
+output: rmarkdown::github_document
+
+# 1. Create a graph that shows the distribution of monthly income.
+
+Load libraries
+
+```{r  include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(forcats)
+library(RColorBrewer)
+library(knitr)
+```
+
+## Load Dataset
+This dataset is from IBM which provide a standard HR dataset.
+
+```{r}
+load("attrition.Rdata")
+```
