@@ -13,8 +13,14 @@ library(knitr)
 ```
 
 ## Load Dataset
-This dataset is from IBM which provide a standard HR dataset.
+This dataset is standard HR dataset from IBM.
 
 ```{r}
 load("attrition.Rdata")
 ```
+## Histogram of Monthly Income
+```{r}
+gg<-ggplot(at,aes(x=Monthly Income))
+gg<-gg+geom_histogram(binwidth = 1,fill="lightblue")
+gg
+``` 
