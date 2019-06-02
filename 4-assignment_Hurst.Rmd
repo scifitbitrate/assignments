@@ -1,1 +1,93 @@
 Use gather function week 4 #1
+---
+title: Wrangling Data Assignment 4
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+```{r} 
+library(tidyverse)
+library(haven)
+library(readxl)
+```
+
+# 1. Panel data for OECD countries. Save as file name oecd.RData http://www.wiley.com/legacy/wileychi/baltagi/supp/Gasoline.dat
+
+## Panel data for OECD countries. Save as file name oecd.RData 
+```{r}
+gas<-read_delim("http://www.wiley.com/legacy/wileychi/baltagi/supp/Gasoline.dat",
+                delim=" ",trim_ws = TRUE)
+
+save(gas,file="OECD.Rdata")
+
+```
+
+# 2. U.S. National Election Survey data from 2004. Save as file name nes.RData.http://www.uta.edu/faculty/story/DataSets.htm
+
+## U.S. National Election Survey data from 2004. Save as file name nes.RData. 
+```{r}
+nes<-read_spss("http://www.uta.edu/faculty/story/DataSets/NES2004.sav")
+
+save(nes,file="nes.Rdata")
+```
+
+# 3. General social survey, student version. Save as file name gss.Rdata. http://www.uta.edu/faculty/story/DataSets.htm
+
+## General social survey, student version. Save as file name gss.Rdata. 
+```{r}
+gss<-read_excel("GeneralSocialSurvey1996ExcelDataStudentVersion.xls",skip=0,col_names = TRUE)
+
+save(gss,file="gss.Rdata")
+
+```
+
+# 4. Replication file for “STATISTICAL DISCRIMINATION OR PREJUDICE? A LARGE SAMPLE FIELD EXPERIMENT”. Open up and save the mainData.csv file. Save it as maindata.RData. Available here, look under the “Data and Analysis” tab.
+## Web page: http://thedata.harvard.edu/dvn/dv/restat/faces/study/StudyPage.xhtml?globalId=doi:10.7910/DVN/26410&studyListingIndex=1_f1a615c2cbee97fb79c9d575ae73
+
+```{r}
+#Delimited files
+
+#Load in the HSB dataset from the UCLA statistical computing site
+library(readr)
+mainData <- read_csv("mainData.csv")
+
+write_csv(mainData,path="mainData.csv")
+
+#Check it out
+head(mainData)
+
+# 5. The Lalonde dataset, covering work experiences in the Panel Study of Income Dynamics (psid). Save as psid.RData http://users.nber.org/~rdehejia/data/psid_controls.txt
+
+## The variables from left to right are: treatment indicator (1 if treated, 0 if not treated), age, education, Black (1 if black, 0 otherwise), Hispanic (1 if Hispanic, 0 otherwise), married (1 if married, 0 otherwise), nodegree (1 if no degree, 0 otherwise), RE74 (earnings in 1974), RE75 (earnings in 1975), and RE78 (earnings in 1978). 
+```{r}
+#Fixed width files
+
+my.widths=c(1,#treated
+            2, #age
+            1, #race
+            1, #ses
+            1, #schtyp
+            1, #prog
+            2, #read
+            2, #write
+            2, #math 
+            2, #science
+            2 #socst
+            )
+            
+my_positions<-fwf_widths(my.widths)
+
+hsb3<-read_fwf("hsb.dat",
+         col_positions=my_positions)
+
+head(hsb3)
+
+names(hsb3)<-my.names
+
+head(hsb3)
+
+```
