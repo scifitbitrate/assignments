@@ -1,4 +1,8 @@
-output: rmarkdown::github_document
+---
+output:
+  word_document: default
+  rmarkdown::github_document: default
+---
 
 # 1. Create a graph that shows the distribution of monthly income.
 
@@ -14,15 +18,14 @@ library(knitr)
 
 ## Load Dataset
 This dataset is standard HR dataset from IBM.
-
 ```{r}
 load("attrition.Rdata")
 ```
 
 ## Histogram of Monthly Income
 ```{r}
-gg<-ggplot(at,aes(x=Monthly Income))
-gg<-gg+geom_histogram(binwidth = 1,fill="lightblue"
+gg<-ggplot(at,aes(x=MonthlyIncome))
+gg<-gg+geom_histogram(binwidth = 1,fill="green")
 gg
 ``` 
 ## Density plot of Monthly Income:
@@ -34,13 +37,10 @@ gg
 
 # 2. Create a graph that shows the average level of monthly income by field of education.
 ```{r}
-
 at_sum<-at%>%
   group_by(EducationField)%>%
   summarize(income_avg=mean(MonthlyIncome))
-
 at_sum
-
 ```
 ## Bar Plot with aesthetics: mean Monthly Income as height, Education Field as cateogry
 
@@ -55,9 +55,7 @@ gg
 ## Reorder by level
 ```{r}
 gg<-ggplot(at_sum,aes(x=fct_reorder(EducationField,income_avg),y=income_avg))
-
 gg<-gg+geom_bar(stat="identity")
-
 ## Labeling
 gg<-gg+xlab("Education Field")+ylab("Monthly Income")
 ##Print
@@ -71,7 +69,6 @@ gg
 at_sum<-at%>%
   group_by(EducationField,Gender)%>%
   summarize(income_avg=mean(MonthlyIncome))
-
 ## Get the results
 at_sum
 ```
@@ -88,12 +85,10 @@ gg
 
 ## Summary
 ```{r}
-
 at_sum<-at%>%
   group_by(EducationField,Gender,JobLevel)%>%
   summarize(income_avg=mean(MonthlyIncome))%>%
   arrange(-income_avg)
-
 at_sum
 ```
 
@@ -102,8 +97,11 @@ at_sum
 gg<-ggplot(at_sum,aes(x=reorder(EducationField,income_avg),
                       y=income_avg,
                       fill=Gender))
- gg<-gg+geom_bar(stat="identity",position="dodge")
+gg<-gg+geom_bar(stat="identity",position="dodge")
+## Separate out by Job Level
 gg<-gg+facet_wrap(~JobLevel)
+## Change orientation to sideways
 gg<-gg+coord_flip()
+## Print
 gg
 ```
