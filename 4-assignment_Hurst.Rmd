@@ -25,13 +25,54 @@ gas<-read_delim("http://www.wiley.com/legacy/wileychi/baltagi/supp/Gasoline.dat"
 save(gas,file="OECD.Rdata")
 
 ```
+## Note that data follows Tidy principles: 
+## 1. Each variable forms a column.
+## 2. Each observation forms a row
+## 3. Each type of observational unit forms a table.
 
-# 2. U.S. National Election Survey data from 2004. Save as file name nes.RData.http://www.uta.edu/faculty/story/DataSets.htm
+```{r}
+is.data.frame(hsb)
+is.tibble(hsb)
+is_tibble(hsb)
+typeof(hsb)
+```
+
+## So you can do fun things with it like saving it in a variable:
+
+```{r}
+desc_gas <- gas %>%
+  group_by(COUNTRY) %>%
+  summarise(mean_gaspcar = mean(LGASPCAR),
+            sd_gaspcar = sd(LGASPCAR),
+            max_gaspcar = max(LGASPCAR),
+            min_gaspcar = min(LGASPCAR))
+```
+## Further analysis like in this example: https://forecasters.org/wp-content/uploads/gravity_forms/7-c6dd08fee7f0065037affb5b74fec20a/2017/07/SELUKAR_RAJESH_ISF2017.pdf
+
+## Or answers questions like: Which country has the maximum average gasoline consumption?
+## Source https://b-rodrigues.github.io/modern_R/descriptive-statistics-and-data-manipulation.html
+
+```{r}
+desc_gas %>%
+  filter(max(mean_gaspcar) == mean_gaspcar)
+```
+
+## Which country has the minimum consumption?
+
+```{r}
+desc_gas %>%
+  filter(min(mean_gaspcar) == mean_gaspcar) 
+```
+
+# 2. U.S. National Election Survey data from 2004. Save as file name nes.RData. http://www.uta.edu/faculty/story/DataSets.htm
 
 ## U.S. National Election Survey data from 2004. Save as file name nes.RData. 
 ```{r}
 nes<-read_spss("http://www.uta.edu/faculty/story/DataSets/NES2004.sav")
-
+# Now need to clean up 
+# Get rid of unwanted columns
+nes2 <-nes [ ,-(c(3))]
+# save file
 save(nes,file="nes.Rdata")
 ```
 
@@ -39,10 +80,21 @@ save(nes,file="nes.Rdata")
 
 ## General social survey, student version. Save as file name gss.Rdata. 
 ```{r}
-gss<-read_excel("GeneralSocialSurvey1996ExcelDataStudentVersion.xls",skip=0,col_names = TRUE)
-
+if(file.exists("gss.xls")==FALSE)
+{download.file("http://www.uta.edu/faculty/story/DataSets/GeneralSocialSurvey1996ExcelDataStudentVersion.xls", destfile = "gss.xls")
+gss<-read_excel("gss.xls",skip=0,col_names=TRUE)
+}else{gss<-read_excel("gss.xls",skip=0,col_names=TRUE)}
+```
+## Check data
+```{r verify tibble}
+is.data.frame(gss)
+is.tibble(gss)
+is_tibble(gss)
+typeof(gss)
+```
+## Save file
+```{r save file}
 save(gss,file="gss.Rdata")
-
 ```
 
 # 4. Replication file for “STATISTICAL DISCRIMINATION OR PREJUDICE? A LARGE SAMPLE FIELD EXPERIMENT”. Open up and save the mainData.csv file. Save it as maindata.RData. Available here, look under the “Data and Analysis” tab.
