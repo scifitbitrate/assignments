@@ -31,10 +31,10 @@ save(gas,file="OECD.Rdata")
 ## 3. Each type of observational unit forms a table.
 
 ```{r}
-is.data.frame(hsb)
-is.tibble(hsb)
-is_tibble(hsb)
-typeof(hsb)
+is.data.frame(gas)
+is.tibble(gas)
+is_tibble(gas)
+typeof(gas)
 ```
 
 ## So you can do fun things with it like saving it in a variable:
@@ -71,7 +71,7 @@ desc_gas %>%
 nes<-read_spss("http://www.uta.edu/faculty/story/DataSets/NES2004.sav")
 # Now need to clean up 
 # Get rid of unwanted columns
-nes2 <-nes [ ,-(c(3))]
+nes <-nes [ ,-(c(3))]
 # save file
 save(nes,file="nes.Rdata")
 ```
@@ -101,45 +101,51 @@ save(gss,file="gss.Rdata")
 ## Web page: http://thedata.harvard.edu/dvn/dv/restat/faces/study/StudyPage.xhtml?globalId=doi:10.7910/DVN/26410&studyListingIndex=1_f1a615c2cbee97fb79c9d575ae73
 
 ```{r}
-#Delimited files
-
-#Load in the HSB dataset from the UCLA statistical computing site
+#Load in the mainData dataset
 library(readr)
-mainData <- read_csv("mainData.csv")
-
+mainData<-read_csv(file="https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/26410/05NHUX")
 write_csv(mainData,path="mainData.csv")
+
+# Get rid of unwanted columns
+mainData <-mainData [ ,-(c(1))]
 
 #Check it out
 head(mainData)
+```
+
+```{r verify tibble}
+is.data.frame(mainData)
+is.tibble(mainData)
+is_tibble(mainData)
+typeof(mainData)
+```
+```{r}
+#Saving as an R file
+save(mainData,file="mainData.Rdata")
+```
 
 # 5. The Lalonde dataset, covering work experiences in the Panel Study of Income Dynamics (psid). Save as psid.RData http://users.nber.org/~rdehejia/data/psid_controls.txt
 
 ## The variables from left to right are: treatment indicator (1 if treated, 0 if not treated), age, education, Black (1 if black, 0 otherwise), Hispanic (1 if Hispanic, 0 otherwise), married (1 if married, 0 otherwise), nodegree (1 if no degree, 0 otherwise), RE74 (earnings in 1974), RE75 (earnings in 1975), and RE78 (earnings in 1978). 
 ```{r}
-#Fixed width files
+psid_controls <- read.table("http://www.nber.org/~rdehejia/data/psid_controls.txt", quote="\"", comment.char="")
+```
+## Label Data
+```{r PSID labels}
+names(psid_controls)<-c("treatment",
+                "age",
+                "education",
+                "black",
+                "hispanic",
+                "married",
+                "nodegree",
+                "earnings1974",
+                "earnings1975",
+                "earnings1978")
+head(psid_controls)
+```
 
-my.widths=c(1,#treated
-            2, #age
-            1, #race
-            1, #ses
-            1, #schtyp
-            1, #prog
-            2, #read
-            2, #write
-            2, #math 
-            2, #science
-            2 #socst
-            )
-            
-my_positions<-fwf_widths(my.widths)
 
-hsb3<-read_fwf("hsb.dat",
-         col_positions=my_positions)
-
-head(hsb3)
-
-names(hsb3)<-my.names
-
-head(hsb3)
-
+```{r Save dataset as Rdata file}
+save(psid_controls,file="psid.Rdata")
 ```
