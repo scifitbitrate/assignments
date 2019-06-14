@@ -27,8 +27,7 @@ load("/home/Rcode/els.Rdata")
 #|bypared| Parental Education
 #|byrace | Race
 
-## 1. Choose a dependent variable and plot that dependent (Reading Scores) variable as a function
-of a continuous independent variable (SES).
+## 1. Choose a dependent variable and plot that dependent (Reading Scores) variable as a function of a continuous independent variable (SES).
 
 ```{r}
 #Plot Reading Scores vs. SES
@@ -73,16 +72,15 @@ g1a<-g1a+ylab("Test Scores")+xlab("SES Rank")
 g1a
 
 ```
-## 3. Add a line of best fit to your graphic.
-Show both the loess and lm lines. Hint: Use geom smooth.
+## 3. Add a line of best fit to your graphic. Show both the loess and lm lines. Hint: Use geom smooth.
+
 ```{r}
 g1<-g1+geom_smooth(method="lm")
 g1<-g1+geom_smooth(method = "loess")
 g1
 ```
 
-## 4. Clean up the labeling and description of the graphic so that it could be
-presented to a broader audience.
+## 4. Clean up the labeling and description of the graphic so that it could be presented to a broader audience.
 
 ```{r}
 g1<-g1+geom_smooth(method="lm")
