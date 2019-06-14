@@ -40,8 +40,7 @@ g1<-g1+geom_point(alpha=.5,size=.25) # Add points at x and y
 g1
 ```
 
-## 2. If you need to, adjust the scale of either the dependent variable or independent
-variable to make more sense.
+## 2. If you need to, adjust the scale of either the dependent variable or independent variable to make more sense.
 
 ```{r}
 #Plot Reading Scores vs. SES
@@ -53,6 +52,26 @@ g1 + xlim(-2, 2)+ylim(0, 51)
 # Change in size and intensity of points
 g1<-g1+geom_point(alpha=.5,size=.2) # Add points at x and y
 g1
+```
+
+## Using conditional means and percentile rank to adjust scale
+
+```{r}
+
+els_sum<-els%>%
+  mutate(ses_rank=percent_rank(byses1)*100)%>%
+  mutate(ses_rank_r=round(ses_rank))%>%
+  group_by(ses_rank_r)%>%
+  summarize(test_mean=mean(bynels2r,na.omit=TRUE))
+
+g1a<-ggplot(els_sum,aes(x=ses_rank_r,y=test_mean))
+
+g1a<-g1a+geom_point()
+
+g1a<-g1a+ylab("Test Scores")+xlab("SES Rank")
+
+g1a
+
 ```
 ## 3. Add a line of best fit to your graphic.
 Show both the loess and lm lines. Hint: Use geom smooth.
@@ -99,7 +118,8 @@ g1b<-g1b+geom_smooth(color="yellow")
 g1b
 ```
 
-5. In your .Rmd file, include a few sentences describing what the graphic
+## 5. In your .Rmd file, include a few sentences describing what the graphic
 above shows.
 # lm fits a straight line through a set of points and is similar to a best line fit.
 # loess fits a curve through a set of points and is similar to modeling with calculus. It is the weighted sum of squared errors and more accurately account for the range in the data set. 
+# I prefer the loess line as it responds to variations in data, but the lm makes predictions much easier as it fits an equation.
