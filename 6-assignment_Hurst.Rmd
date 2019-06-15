@@ -117,7 +117,7 @@ g1b
 ```
 
 ## 5. In your .Rmd file, include a few sentences describing what the graphic above shows.
-# The above graph is a simplified version of the data Reading Test Scores with two regression lines- an lm and a loess. 
+# The above graph is a simplified version of the data Reading Test Scores vs. SES with two regression lines- an lm and a loess. 
 # lm fits a straight line through a set of points and is similar to a best line fit.
 # loess fits a curve through a set of points and is similar to modeling with calculus. It is the weighted sum of squared errors and more accurately account for the range in the data set. 
 # I prefer the loess line as it responds to variations in data, but the lm makes predictions much easier as it fits an equation.
