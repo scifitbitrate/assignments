@@ -1,0 +1,235 @@
+---
+title: "Assignment-7"
+author: "Jason Hurst"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ways of getting data from the web
+
+We will cover several different ways you can get data from the web
+
+1. Directly downloading web pages via the `url()` command. 
+1. Scraping simple web tables via `read_html()` and `html_table()` command
+1. Interacting with Application Programming Interfaces (APIs) via R libraries that have been designed as "wrappers" for these interfaces, like the awesome `acs` library and the `tigris` library for geographic shapes. 
+1. Interacting with APIs directly, 
+
+
+## Libraries
+
+We will use multiple new libraries today. Among the ones you'll need: 
+
+* `rvest` for scraping websites
+
+* `acs` for accessing American Community Survey data via the census API
+
+
+```{r}
+library(tidyverse)
+library(rvest)
+library(acs)
+library(lubridate)
+library(noncensus)
+library(tigris)
+```
+## 1. Download data for all of the census tracts in Fulton County, GA on education levels.
+
+# First obtain Zip Code Level Data from the American Community Survey
+
+#We start by using the lookup_code from the `tigris` package to get the fips codes Fulton County, GA.
+```{r}
+## Look up fips code for county
+lookup_code("GA","Fulton") 
+
+state_fips<-"13"
+county_stub<-"121"
+```
+
+Next, we'll combine the state and county fips into a single object
+
+```{r}
+county_fips<-paste0(state_fips,county_stub)
+```
+
+```{r}
+# Get dataset that matches all zip codes to cities, counties and states. 
+county_to_zip<-read_csv("http://www2.census.gov/geo/docs/maps-data/data/rel/zcta_county_rel_10.txt")
+save(county_to_zip,file="county_to_zip.Rdata")
+
+#easier names to work with
+names(county_to_zip)<-tolower(names(county_to_zip))
+
+#Just zip codes in selected county
+county_to_zip<-county_to_zip%>%
+  filter(state==as.numeric(state_fips),county==county_stub)%>%
+  select(zcta5,state,county)
+
+#list of zip codes
+ziplist<-county_to_zip$zcta5
+
+#City names
+data(zip_codes)
+
+city_zip<-zip_codes%>%filter(zip%in%ziplist)%>%select(zip,city)
+
+#Arrange in order
+city_zip<-city_zip%>%arrange(as.numeric(zip))
+```
+# Use key to access data
+
+```{r}
+# load in ACS Key
+my_acs_key<-readLines("/home/brick/Dropbox/Vandy/Classes/8210/CensusAPI.txt",warn = FALSE)
+acs_key<-my_acs_key
+
+# Or just paste it here.
+#acs_key<-"<Nice Try!>"
+
+#List of tables: https://www.census.gov/programs-surveys/acs/technical-documentation/summary-file-documentation.html under, 1-year appendices
+# We will use this one- b15002: education of pop over 25, by sex 
+# Another is b19001: household income over last 12 months
+
+api.key.install(acs_key, file = "key.rda")
+
+select_zip<-geo.make(zip.code=ziplist)
+
+county_educ=acs.fetch(geography=select_zip,
+                      endyear=2016,
+                      table.number="B15002",
+                      col.names="pretty",verbose=T)
+#save(county_educ,file="county_educ_la.Rdata")  # <---- this may take a long time :(
+acs.colnames(county_educ)
+```
+
+## 2. Compute the proportion of the population that has a bachelor’s degree or above by census tract.
+
+```{r}
+## Proportion of individuals at college or above=
+## number with college degree/
+## total number
+bachpct<-divide.acs(numerator=(county_educ[,15]+
+                                      county_educ[,16]+
+                                      county_educ[,17]+
+                                      county_educ[,18]+
+                                      county_educ[,32]+
+                                      county_educ[,33]+
+                                      county_educ[,34]+
+                                      county_educ[,35]),
+                            denominator=county_educ[,1])
+### Double check -- 1 is total population and others are groups with Bachelor's or above. check with acs.colnames(county_educ)
+
+head(bachpct)
+```
+
+## 3. Download data for all of the zip codes in LA county on family income by census tract.
+
+```{r}
+## Look up fips code for county
+lookup_code("CA","Los Angeles") 
+
+lastate_fips<-"06"
+lacounty_stub<-"037"
+```
+Next, we'll combine the state and county fips into a single object
+
+```{r}
+lacounty_fips<-paste0(lastate_fips,lacounty_stub)
+```
+
+```{r}
+#Redownload the dataset that matches all zip codes to cities, counties and states. Note that some steps could be skipped if we use different nomenclature for getting data about GA
+lacounty_to_zip<-read_csv("http://www2.census.gov/geo/docs/maps-data/data/rel/zcta_county_rel_10.txt")
+save(lacounty_to_zip,file="lacounty_to_zip.Rdata")
+
+#easier names to work with
+names(lacounty_to_zip)<-tolower(names(lacounty_to_zip))
+
+#Just zip codes in selected county
+lacounty_to_zip<-lacounty_to_zip%>%
+  filter(state==as.numeric(lastate_fips),county==lacounty_stub)%>%
+  select(zcta5,state,county)
+
+#list of zip codes
+laziplist<-lacounty_to_zip$zcta5
+
+#City names
+data(zip_codes)
+
+lacity_zip<-zip_codes%>%filter(zip%in%laziplist)%>%select(zip,city)
+
+#Arrange in order
+lacity_zip<-lacity_zip%>%arrange(as.numeric(zip))
+```
+
+#List of tables: https://www.census.gov/programs-surveys/acs/technical-documentation/summary-file-documentation.html under, 1-year appendices
+# Now we will use this one- b19001: household income over last 12 months
+
+## Family Income Data
+```{r}
+
+# 19001-- family income     
+
+laselect_zip<-geo.make(zip.code=laziplist)
+lacounty_income<-acs.fetch(geography=laselect_zip, 
+                        endyear = 2016,
+                        table.number="B19001", 
+                        col.names="pretty")
+
+acs.colnames(lacounty_income)
+
+head(lacounty_income)
+```
+ 
+## 4. Compute the proportion of the population that has family income above 75,000 in each census tract.
+
+```{r}
+#Proportion above 75k-- 
+prop_above_75<-divide.acs(numerator=(lacounty_income[,13]+
+                            lacounty_income[,14]+
+                            lacounty_income[,15]+
+                            lacounty_income[,16]+
+                            lacounty_income[,17]),
+                          denominator=lacounty_income[,1]
+                          )
+head(prop_above_75)
+```
+
+## 5. Plot the proportion of residents in each census tract with incomes above 75,000 as a function of income.
+
+```{r}
+county_income2<-acs.fetch(geography=laselect_zip, 
+                        endyear = 2016,
+                        table.number="B19001", 
+                        col.names="pretty")
+
+
+head(county_income2)
+```
+
+```{r}
+# Convert to tibble
+lacounty_df<-tibble(substr(geography(lacounty_income)[[1]],7,11),
+                    as.numeric(estimate(county_income2)),
+                    as.numeric(estimate(prop_above_75))
+)
+
+
+# Give it easy to use names
+names(lacounty_df)<-c("zip", "income", "income_75")
+save(lacounty_df,file="la.RData")
+
+head(lacounty_df)
+```
+
+```{r}
+
+gg<-ggplot(lacounty_df,aes(x=county_income2,y=income_75))
+gg<-gg+geom_point()
+gg
+
+```
