@@ -217,7 +217,7 @@ gg
 ```
 
 
-## Bonus: Compare LA County to the rest of California
+## Extra: Compare LA County to the rest of California
 ```{r}
 census_api_key ("your census key")
 ca <- get_acs(geography = "county", 
