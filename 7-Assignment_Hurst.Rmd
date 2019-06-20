@@ -37,7 +37,7 @@ library(tigris)
 library(tidycensus)
 ```
 
-## 1. Download data for all of the zip codes in Los Angeles county on education levels.
+## 1. Download data for all of the zip codes in Los Angeles county on education levels. Note that I used 2016 data in all cases.
 ## Zip Code Level Data from the American Community Survey
 
 The first step is to create a list of all zip codes in Los Angeles County. We can do this by using another dataset that includes a comprehensive listing of zip codes by county and city. 
