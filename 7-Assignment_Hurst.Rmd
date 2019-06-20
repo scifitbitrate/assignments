@@ -181,7 +181,7 @@ head(lacounty_df)
 ## Get income data for zip codes
 ```{r}
 #income total-- 
-census_api_key ("2fba771352e6b43546156e33f796e1909ad248d3")
+census_api_key ("Your Census Key")
 lacounty_income2<- get_acs(geography = "zcta",
                            year= 2016 ,
                            variables = "B19001_001")
