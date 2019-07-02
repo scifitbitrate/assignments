@@ -183,6 +183,29 @@ confusionMatrix(data=as.factor(training$pred_logitlem_out),reference=as.factor(t
 
 See Line 155
 
+## 6. Make predictions from the logit model. Make sure these are probabilities. 
+
+## Applying predictions to the testing dataset.
+
+With our new (not very good) classifier, we can now add predictions to the testing dataset, and see how good this classifier is at predicting out of sample information. 
+
+```{r}
+#load("testing.RData")
+
+test<-test%>%
+  mutate(pred_logit=predict(logitlem_mod,newdata=.,type="response"))%>%
+      mutate(predlem_logit_out=ifelse(predlem_logit>=.5,1,0))
+
+test<-test%>%
+    mutate(predlem_logit_out=as.factor(predlem_logit_out))
+
+test<-test%>%
+    mutate(IsBadBuy=as.factor(IsBadBuy))
+
+
+confusionMatrix(data=test$predlem_logit_out,reference=test$IsBadBuy)
+```
+
 ## 7. Create a confusion matrix from your linear model and your logit model.
 
 See Line 128 and 178
