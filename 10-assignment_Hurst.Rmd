@@ -1,0 +1,118 @@
+---
+title: "Assignment-10"
+author: "Jason Hurst"
+output: github_document
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(modelr)
+library(caret)
+library(tictoc)
+```
+
+## 1. Create a 10-fold cross validation of your linear model predicting reading scores as a function of at least two covariates. Provide a summary table or graphic of the RMSEs from this cross validation. 
+
+Next we load the els data We're going to create a simple model that predicts reading scores as a function of socio-economic status and parental education. 
+
+```{r}
+#load("els.Rdata")
+els<-els%>%
+  select(bynels2r,byses1,bypared)%>%
+  mutate_all(funs(as.numeric))%>%
+  mutate(read_rank=percent_rank(bynels2r))%>% 
+  tbl_df()
+```
+
+```{r}
+gg<-ggplot(els, aes(x=bypared,y=read_rank))
+gg<-gg+geom_point()
+gg
+```
+
+```{r}
+## Define the model
+mod1_formula<-formula(read_rank~byses1+
+                        bypared)
+## Run the model against all of the data
+basic.mod<-lm(mod1_formula,
+              data=els); summary(basic.mod)
+
+```
+
+The `crossv_kfold` command creates a list of datasets from our original dataset, each of which contains a testing and training dataset. The proportion of cases held out for testing is determined by the number of folds: 10 folds would indicate 1/10 of the data to be held out. 
+
+```{r}
+els_cf<-els%>%
+  crossv_kfold(10)
+els_cf
+```
+
+Convert all of the individual training datasets to tibbles. Then the model is run on each training dataset. Then apply the predictions from the model to each testing dataset, and finally pull the rmse from each of the testing datasets. 
+
+```{r}
+rmse_mod1<-els_cf %>% 
+  mutate(train = map(train, as_tibble)) %>% ## Convert to tibbles
+  mutate(model = map(train, ~ lm(mod1_formula,
+                                 data = .))) %>%
+  mutate(rmse = map2_dbl(model, test, rmse)) %>% ## apply model, get rmse
+  select(.id, rmse) ## pull just id and rmse 
+```
+
+The resulting dataset includes the id for the cross validation and the rmse. We can summarize and plot this new data frame to see what our likely range of rmse happens to be. 
+
+```{r}
+summary(rmse_mod1$rmse)
+
+gg<-ggplot(rmse_mod1,aes(rmse))
+gg<-gg+geom_density()
+gg
+```
+
+As this shows, the rmse for the crossfold validations goes from a minimum of 
+`r  round(summary(rmse_mod1$rmse)[1],2)` to a maximum of `r  round(summary(rmse_mod1$rmse)[6],2)`, with a median of `r  round(summary(rmse_mod1$rmse)[3],2)`. 
+
+## 2. Using a random partition, create 100 separate cross validations of your linear model predicting reading scores as a function of at least two covariates. Provide a summary table or graphic of the RMSEs from this cross validation.
+
+## Full Cross Validation: Random Partition
+
+The `crossv_mc` command provides for a generalization of the crossfold command. For this command, we can specify the proportion to be randomly held out in each iteration, via `test=p` where `p` is the proportion to be held out. 
+
+```{r}
+els_cv<-els%>%
+  crossv_mc(n=50,test=.2)
+els_cv
+```
+
+The `els_cv` dataset is a dataset of 50x2 datasets, with each row containing a training and testing dataset. The testing dataset is .2 of the sample, but it's different each time. 
+
+Now we use the same approach, but with the MUCH larger qf_cv dataset. This will take a bit of time. 
+
+```{r}
+mod1_rmse_cv<-els_cv %>% 
+  mutate(train = map(train, as_tibble)) %>% ## Convert to tibbles
+  mutate(model = map(train, ~ lm(mod1_formula, data = .)))%>%
+  mutate(rmse = map2_dbl(model, test, rmse))%>% 
+  select(.id, rmse) ## pull just id and rmse 
+
+mod1_rmse_cv
+```
+
+
+
+```{r}
+summary(mod1_rmse_cv$rmse)
+
+gg<-ggplot(mod1_rmse_cv,aes(rmse))
+gg<-gg+geom_density(bins=50,fill="blue",alpha=.2)
+gg
+
+```
