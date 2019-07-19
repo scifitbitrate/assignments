@@ -17,6 +17,8 @@ library(tidyverse)
 library(nycflights13) 
 # `nycflights13` database, which contains information on every single flight departing New York City in 2013, including airline information, airport information, flight information, plane information and weather information. 
 library(RSQLite)
+library("viridis")
+library("datamodelr")
 ```
 
 ## 1. Using the nyclfights13 library, open all of the data tables and turn them into a database. Make sure to include flights, airlines, airports, weather and planes.
@@ -71,7 +73,7 @@ Check access to tables.
 dbListTables(con)
 ```
 
-Fields included.
+For some of these tables, what fields are included? 
 
 ```{r}
 #List fields in various tables
@@ -124,11 +126,11 @@ weather_df<-dbFetch(weather_req,n=-1)
 dbClearResult(weather_req)
 
 head(weather_df)
+
 ```
 
 ## 4. Create data frame from a SQL pull from the database that consists of planes flown by United.
 Requesting all carriers using UA (UNITED) from flight table.
-
 ```{r}
 #New request: which carriers have longer delays? 
 united_text<-"SELECT f.flight, f.carrier 
@@ -142,4 +144,32 @@ united_df<-dbFetch(united,n=-1)
 dbClearResult(united)
 
 head(united_df)
+```
+```{r}
+flights_latlon <- flights %>%
+  inner_join(select(airports, origin = faa, origin_lat = lat, origin_lon = lon),
+    by = "origin"
+  ) %>%
+  inner_join(select(airports, dest = faa, dest_lat = lat, dest_lon = lon),
+    by = "dest"
+  )
+```
+
+```{r}
+flights_latlon %>%
+  slice(1:100) %>%
+  ggplot(aes(
+    x = origin_lon, xend = dest_lon,
+    y = origin_lat, yend = dest_lat
+  )) +
+  borders("state") +
+  geom_segment(arrow = arrow(length = unit(0.1, "cm"))) +
+  coord_quickmap() +
+  labs(y = "Latitude", x = "Longitude")
+```
+
+
+```{r}
+## Disconnect when done
+dbDisconnect(con)
 ```
