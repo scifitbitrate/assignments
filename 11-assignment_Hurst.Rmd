@@ -1,0 +1,145 @@
+---
+title: "11-assignment_Hurst.Rmd"
+author: "Jason Hurst"
+output: github_document
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Get libraries
+```{r}
+library(tidyverse)
+library(nycflights13) 
+# `nycflights13` database, which contains information on every single flight departing New York City in 2013, including airline information, airport information, flight information, plane information and weather information. 
+library(RSQLite)
+```
+
+## 1. Using the nyclfights13 library, open all of the data tables and turn them into a database. Make sure to include flights, airlines, airports, weather and planes.
+
+# NYC Flights
+
+Open tables. They're stored in `data()` from the `nycflights` library. 
+
+```{r}
+# Data sources from NYC flights
+data(flights)
+data(airlines)
+data(airports)
+data(weather)
+data(planes)
+```
+
+# Connecting to a database
+
+`con` below refers to our connection to a database. It remains open until we close it. It will be based on the properties of the database we're trying to access. 
+
+```{r}
+con <- dbConnect(RSQLite::SQLite(), ":memory:")
+
+#Write flights tables to database (you won't usually do this)
+dbWriteTable(con,
+             "flights", 
+             as.data.frame(flights))
+
+dbWriteTable(con,
+             "planes", 
+             as.data.frame(planes))
+
+dbWriteTable(con,
+             "airlines", 
+             as.data.frame(airlines))
+
+dbWriteTable(con,
+             "weather", 
+             as.data.frame(weather))
+
+dbWriteTable(con,
+             "airports", 
+             as.data.frame(airports))
+```
+
+
+## Tables and Fields
+Check access to tables.
+```{r}
+#List tables in database
+dbListTables(con)
+```
+
+Fields included.
+
+```{r}
+#List fields in various tables
+dbListFields(con,"airlines")
+
+dbListFields(con,"flights")
+
+dbListFields(con,"planes")
+
+dbListFields(con,"weather")
+
+dbListFields(con,"airports")
+```
+
+## 2. Create a data frame from a SQL pull from the database that consists only of flights that took off from JFK in May.
+Select the flights table where the month is May (5) and the origin is JFK. 
+
+```{r}
+#SQL request, flight info combined with weather info
+flight_text<-"SELECT f.month, f.origin, f.flight
+              FROM flights f
+              WHERE f.month=5 AND f.origin='JFK'"
+flight_req<-dbSendQuery(con,flight_text)
+
+flight_df<-dbFetch(flight_req,n=-1)
+
+dbClearResult(flight_req)
+
+head(flight_df)
+```
+
+## 3. Create a data frame from a SQL pull from the database that consists only of flights that took off on-time (a delay of less than 10 minutes) from Newark at temperatures of less than 40 degrees F.
+
+Select the flights table where departure delay < 10 and the weather table where the temperature < 40.
+
+```{r}
+#SQL request, flight info combined with weather info
+weather_text<-"SELECT f.dep_delay, f.origin, w.temp, f.flight
+              FROM weather w
+              JOIN flights f 
+              ON f.year=w.year
+              AND f.month=w.month
+              AND f.day=w.day
+              WHERE f.dep_delay<10 AND f.origin='EWR' AND w.temp<40"
+
+weather_req<-dbSendQuery(con,weather_text)
+
+weather_df<-dbFetch(weather_req,n=-1)
+
+dbClearResult(weather_req)
+
+head(weather_df)
+```
+
+## 4. Create data frame from a SQL pull from the database that consists of planes flown by United.
+Requesting all carriers using UA (UNITED) from flight table.
+
+```{r}
+#New request: which carriers have longer delays? 
+united_text<-"SELECT f.flight, f.carrier 
+            FROM flights f 
+            WHERE f.carrier='UA'"
+            
+united<-dbSendQuery(con,united_text)
+
+united_df<-dbFetch(united,n=-1)
+
+dbClearResult(united)
+
+head(united_df)
+```
