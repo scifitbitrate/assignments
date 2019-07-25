@@ -1,0 +1,160 @@
+---
+title: "12-assignment_Hurst.Rmd"
+author: "Jason Hurst"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## 1. Download the student evaluation dataset from the website.
+The data was provided as an excel sheet in the files. I imported after installing libraries.
+
+#Get libraries
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(stats)
+library(flexclust)
+library(ggplot2)
+library(LICORS)
+library(knitr)
+library(modelr)
+library(readxl)
+library(readxl)
+turki <- read_excel("/home/brick/Dropbox/Vandy/Classes/8200/Resources/week12_resources_new_2_2_2/turkiyestudentevaluation_selected.xlsx")
+View(turki)
+```
+
+
+## 2. Select a set of 10 related variables that you think might serve as the basis for clustering.
+
+I chose 10 variables and kept ID data, attendance data, and perceived difficulty. The explanation can be found at the following websites: http://archive.ics.uci.edu/ml/datasets/turkiye+student+evaluation
+
+This is the selected questions and identifiers. The unwanted columns were deleted prior to importing the excel file.
+
+    instr: Instructor's identifier; values taken from {1,2,3} 
+    class: Course code (descriptor); values taken from {1-13} 
+    repeat: Number of times the student is taking this course; values taken from {0,1,2,3,...} 
+    attendance: Code of the level of attendance; values from {0, 1, 2, 3, 4} 
+    difficulty: Level of difficulty of the course as perceived by the student; values taken from {1,2,3,4,5} 
+    Q9: enjoyment I greatly enjoyed the class and was eager to actively participate during the lectures. 
+    Q13: knowledge The Instructor's knowledge was relevant and up to date. 
+    Q14: prepared The Instructor came prepared for classes. 
+    Q20: eager The Instructor explained the course and was eager to be helpful to students. 
+    Q21: positive The Instructor demonstrated a positive approach to students. 
+    Q22: respect The Instructor was open and respectful of the views of students about the course. 
+    Q23: encourage The Instructor encouraged participation in the course. 
+    Q25: available The Instructor responded to questions about the course inside and outside of the course. 
+    Q27: solutions The Instructor provided solutions to exams and discussed them with students. 
+    Q28: objective The Instructor treated all students in a right and objective manner. 
+
+    Note: Q1-Q28 are all Likert-type, meaning that the values are taken from {1,2,3,4,5}
+
+## 3. Run the clustering algorithm kmeanspp to identify 3 clusters.
+The `kmeanspp` (stands for k-means ++) command will repeat the kmeans clustering algorithm with different starting points until it converges on a stable solution. It basically repeats the process we saw above, but with the intention of getting to a stable solution. 
+
+```{r}
+s1 <- kmeanspp(turki, k = 3, start = "random", iter.max = 1000, nstart = 50)
+table(s1$cluster)
+```
+
+After obtaining 3 clusters, I practiced looking at them in regards to two variables- a student's enjoyment of the class (Spoiler cluster 2 had a high rate of students who did not enjoy the class) and whether or not the professor seemed prepared (Spoiler cluster 2 did not percieve the professor as being prepared).
+```{r}
+# Add predictions
+turki$cluster <- s1$cluster
+
+# Examine relationship of cluster assignment to chars.
+mycols <- c("Group 1", "Group 2", "Group 3")
+
+# Greatly enjoyed and eager to participate
+pt <- prop.table(table(turki$cluster, turki$enjoyment), margin = 1)
+```
+
+
+```{r}
+rownames(pt) <- mycols
+pt <- pt * 100
+pt <- round(pt, 1)
+```
+```{r}
+kable(pt, row.names = TRUE, col.names = c("not enjoy", "little enjoy", "enjoy","much enjoy", "greatly enjoy"))
+```
+
+```{r pofessor prepared}
+pt <- prop.table(table(turki$cluster, turki$prepared), margin = 1)
+
+rownames(pt) <- mycols
+pt <- pt * 100
+pt <- round(pt, 1)
+```
+```{r}
+kable(pt, row.names = TRUE, col.names = c("Not prepared", "little prepared", "prepared", "much prepared", "greatly prepared"))
+```
+## 4. Summarize the clusters using the variables you selected.
+```{r}
+# summarize groups
+
+var.means <- colMeans(turki)
+
+## Drop the cluster means
+var.means <- var.means[-(length(var.means))]
+```
+
+# Summarizing group characteristics by cluster
+
+The code below will summarize all of the contributing variables for each cluster, then create a plot that shows the mean of each variable within each cluster. 
+
+First, we do our normal `summarize` command, but this time over every variable in the analysis dataset, using `summarize_all` and `funs(mean)`.
+
+```{r}
+# Summarize groups by cluster
+sumt <- turki %>% group_by(cluster) %>% summarize_all(funs(mean), na.rm = TRUE)
+sumt
+```
+
+Now we'll `gather` everything, so that we have just two variables: the proportion (as a number) and the variable (as a character).
+```{r}
+sumt2 <- gather(sumt, -cluster, key = variable, value = value)
+sumt2
+sumt_total <- turki %>% summarize_all(funs(mean))
+
+sumt_total <- gather(sumt_total, key = variable, value = overall_mean)
+sumt2 <- left_join(sumt2, sumt_total, by = "variable")
+```
+
+```{r}
+sumt2 <- sumt2 %>% group_by(variable) %>% mutate(varmeans = mean(value))
+```
+
+## Survey Responses by Cluster
+```{r}
+variable_labels <- rev(c(
+  "instructor ID",
+  "class ID",
+  "student repeat",
+  "student attendance",
+  "difficulty of class",
+  "enjoyment",
+  "professor knowledge",
+  "professor prepared",
+  "professor helpful",
+  "professor positive",
+  "professor respectful",
+  "professor encouraging",
+  "professor available",
+  "professor discussed exams",
+  "professor objective"
+))
+
+# Plot characteristics by cluster
+gt <- ggplot(data = sumt2, aes(y = value, x = variable, fill = variable))
+gt <- gt + geom_bar(stat = "identity") + coord_flip() + theme(legend.position = "none")
+gt <- gt + scale_x_discrete(labels = variable_labels)
+gt <- gt + geom_point(data = sumt2, aes(y = overall_mean, x = variable))
+gt <- gt + facet_wrap(~cluster)
+gt
+```
