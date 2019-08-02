@@ -127,7 +127,7 @@ A shapefile gives the outlines of a geographic area, which is the basis for bein
 #cs<-counties(year=2010)
 #save(cs,file="cs.RData")
 #}else{
-load("/mnt/9fb39a2f-974e-4e19-b691-5e82f07609fc/brick/Dropbox/Vandy/Classes/8200/Resources/week13_resources_lite/cs.RData")
+load("cs.RData")
 #}
 ```
 
